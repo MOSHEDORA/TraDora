@@ -177,6 +177,30 @@ export class TechnicalAnalysisService {
         continue;
       }
       
+      // Check for actual price variation - no point in calculating indicators on identical prices
+      const priceMin = Math.min(...validPrices);
+      const priceMax = Math.max(...validPrices);
+      const priceRange = priceMax - priceMin;
+      const priceStdDev = this.calculateStandardDeviation(validPrices);
+      
+      // Require meaningful price variation for technical analysis
+      if (priceRange < 1 || priceStdDev < 0.001) {
+        console.warn(`No price variation for ${symbol} (range: ${priceRange.toFixed(2)}, stdDev: ${priceStdDev.toFixed(4)}) - skipping technical analysis`);
+        continue;
+      }
+      
+      // Check for unique timestamps to ensure we have historical data, not just repeated current quotes
+      const timestamps = symbolData
+        .map(d => d.timestamp ? new Date(d.timestamp).getTime() : Date.now())
+        .filter((ts, index, arr) => arr.indexOf(ts) === index);
+      
+      if (timestamps.length < 10) {
+        console.warn(`Insufficient historical data diversity for ${symbol} (${timestamps.length} unique timestamps)`);
+        continue;
+      }
+      
+      console.log(`${symbol}: ${symbolData.length} points, ${timestamps.length} unique timestamps, price range: ${priceRange.toFixed(2)}, stdDev: ${priceStdDev.toFixed(4)}`);
+      
       result[symbol] = {
         rsi: this.calculateRSI(prices),
         macd: this.calculateMACD(prices),
@@ -189,6 +213,16 @@ export class TechnicalAnalysisService {
     }
     
     return result;
+  }
+  
+  private calculateStandardDeviation(values: number[]): number {
+    if (values.length === 0) return 0;
+    
+    const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+    const squaredDifferences = values.map(val => Math.pow(val - mean, 2));
+    const avgSquaredDiff = squaredDifferences.reduce((sum, val) => sum + val, 0) / values.length;
+    
+    return Math.sqrt(avgSquaredDiff);
   }
 
 

@@ -68,21 +68,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { symbol, timeframe = '5m' } = req.query;
       
+      // Disable caching for technical analysis to ensure fresh calculations
+      res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      
       if (symbol) {
         const indicators = await storage.getTechnicalIndicators(symbol as string, timeframe as string);
         res.json(indicators);
       } else {
-        // Get all symbols
+        // Get all symbols - always calculate fresh
         const marketData = await storage.getMarketData();
+        console.log(`Technical analysis: Processing ${marketData.length} data points`);
+        
         const technicals = technicalAnalysisService.analyzeTechnicals(marketData);
         
-        // Save technical indicators
-        for (const [sym, data] of Object.entries(technicals)) {
-          await storage.saveTechnicalIndicators({
-            symbol: sym,
-            timeframe: timeframe as string,
-            indicators: data
-          });
+        // Only save if we have valid technical data
+        if (Object.keys(technicals).length > 0) {
+          for (const [sym, data] of Object.entries(technicals)) {
+            await storage.saveTechnicalIndicators({
+              symbol: sym,
+              timeframe: timeframe as string,
+              indicators: data
+            });
+          }
         }
         
         res.json(technicals);
