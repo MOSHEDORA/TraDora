@@ -18,7 +18,7 @@ interface TradeFormData {
 
 export function TradingForm() {
   const [formData, setFormData] = useState<TradeFormData>({
-    instrument: 'BANKNIFTY_44400_CE',
+    instrument: '',
     action: 'BUY',
     quantity: 25,
     price: 0,
@@ -29,14 +29,8 @@ export function TradingForm() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const instruments = [
-    { value: 'BANKNIFTY_44400_CE', label: 'BANKNIFTY 44400 CE' },
-    { value: 'BANKNIFTY_44400_PE', label: 'BANKNIFTY 44400 PE' },
-    { value: 'NIFTY_19400_CE', label: 'NIFTY 19400 CE' },
-    { value: 'NIFTY_19400_PE', label: 'NIFTY 19400 PE' },
-    { value: 'BANKNIFTY_44500_CE', label: 'BANKNIFTY 44500 CE' },
-    { value: 'BANKNIFTY_44300_PE', label: 'BANKNIFTY 44300 PE' }
-  ];
+  // No hardcoded instruments - should fetch from option chain API
+  const instruments: { value: string; label: string }[] = [];
 
   const placeTradeMutation = useMutation({
     mutationFn: async (tradeData: any) => {
@@ -125,15 +119,21 @@ export function TradingForm() {
                   <SelectValue placeholder="Select instrument" />
                 </SelectTrigger>
                 <SelectContent>
-                  {instruments.map((instrument) => (
-                    <SelectItem 
-                      key={instrument.value} 
-                      value={instrument.value}
-                      data-testid={`option-${instrument.value}`}
-                    >
-                      {instrument.label}
-                    </SelectItem>
-                  ))}
+                  {instruments.length === 0 ? (
+                    <div className="p-2 text-sm text-muted-foreground text-center">
+                      No Data Available - Requires option chain data
+                    </div>
+                  ) : (
+                    instruments.map((instrument) => (
+                      <SelectItem 
+                        key={instrument.value} 
+                        value={instrument.value}
+                        data-testid={`option-${instrument.value}`}
+                      >
+                        {instrument.label}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>

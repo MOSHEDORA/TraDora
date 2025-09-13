@@ -71,9 +71,12 @@ export function Portfolio() {
   };
 
   const handleCloseTrade = (tradeId: string) => {
-    // In a real app, this would use current market price
-    const mockExitPrice = 150.25; // Mock current price
-    closeTradeMutation.mutate({ tradeId, exitPrice: mockExitPrice });
+    // No mock price - trade closing disabled without real market data
+    toast({
+      title: "No Data Available",
+      description: "Trade closing requires real-time market price data",
+      variant: "destructive",
+    });
   };
 
   const getStatusColor = (status: PaperTrade['status']) => {

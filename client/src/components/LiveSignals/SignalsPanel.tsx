@@ -104,22 +104,12 @@ export function SignalsPanel() {
 
   const generateNewSignal = async () => {
     try {
-      const response = await fetch('/api/generate-signal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          instrument: 'BANKNIFTY 44400 CE',
-          currentPrice: 142.75,
-        }),
+      // No hardcoded values - signal generation disabled without real data
+      toast({
+        title: "No Data Available",
+        description: "Signal generation requires real-time market data",
+        variant: "destructive",
       });
-
-      if (response.ok) {
-        refetch();
-        toast({
-          title: "Signal Generated",
-          description: "New AI trading signal has been created",
-        });
-      }
     } catch (error) {
       console.error('Generate signal error:', error);
       toast({

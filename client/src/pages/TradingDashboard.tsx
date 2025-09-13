@@ -77,11 +77,8 @@ export default function TradingDashboard() {
                 <CardHeader className="flex flex-row items-center justify-between space-y-0">
                   <CardTitle>Nifty 50 - 5 Min Chart</CardTitle>
                   <div className="flex items-center space-x-2">
-                    <select className="px-3 py-1 text-sm border border-border rounded-lg bg-background">
-                      <option>1 Min</option>
-                      <option>5 Min</option>
-                      <option>15 Min</option>
-                      <option>1 Hour</option>
+                    <select className="px-3 py-1 text-sm border border-border rounded-lg bg-background" disabled>
+                      <option>No Data Available</option>
                     </select>
                   </div>
                 </CardHeader>
@@ -112,14 +109,11 @@ export default function TradingDashboard() {
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold">Options Analysis</h2>
               <div className="flex items-center space-x-4">
-                <select className="px-4 py-2 border border-border rounded-lg bg-background">
-                  <option value="banknifty">Bank Nifty</option>
-                  <option value="nifty">Nifty 50</option>
+                <select className="px-4 py-2 border border-border rounded-lg bg-background" disabled>
+                  <option>No Data Available</option>
                 </select>
-                <select className="px-4 py-2 border border-border rounded-lg bg-background">
-                  <option>25 Jan 2024</option>
-                  <option>01 Feb 2024</option>
-                  <option>08 Feb 2024</option>
+                <select className="px-4 py-2 border border-border rounded-lg bg-background" disabled>
+                  <option>No Data Available</option>
                 </select>
               </div>
             </div>
@@ -128,29 +122,25 @@ export default function TradingDashboard() {
               <Card className="text-center">
                 <CardContent className="pt-6">
                   <h3 className="text-sm font-semibold text-muted-foreground mb-2">Put-Call Ratio</h3>
-                  <div className="text-2xl font-bold font-mono">0.68</div>
-                  <div className="text-sm text-success">Bullish</div>
+                  <div className="text-lg text-muted-foreground">No Data Available</div>
                 </CardContent>
               </Card>
               <Card className="text-center">
                 <CardContent className="pt-6">
                   <h3 className="text-sm font-semibold text-muted-foreground mb-2">Max Pain</h3>
-                  <div className="text-2xl font-bold font-mono">44,400</div>
-                  <div className="text-sm text-muted-foreground">Strike</div>
+                  <div className="text-lg text-muted-foreground">No Data Available</div>
                 </CardContent>
               </Card>
               <Card className="text-center">
                 <CardContent className="pt-6">
                   <h3 className="text-sm font-semibold text-muted-foreground mb-2">Implied Volatility</h3>
-                  <div className="text-2xl font-bold font-mono">18.25%</div>
-                  <div className="text-sm text-warning">Elevated</div>
+                  <div className="text-lg text-muted-foreground">No Data Available</div>
                 </CardContent>
               </Card>
               <Card className="text-center">
                 <CardContent className="pt-6">
                   <h3 className="text-sm font-semibold text-muted-foreground mb-2">Total OI</h3>
-                  <div className="text-2xl font-bold font-mono">8.2L</div>
-                  <div className="text-sm text-muted-foreground">Contracts</div>
+                  <div className="text-lg text-muted-foreground">No Data Available</div>
                 </CardContent>
               </Card>
             </div>
@@ -165,21 +155,11 @@ export default function TradingDashboard() {
                   <CardTitle>Greeks Analysis</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                    <span className="font-medium">Delta (44400 CE)</span>
-                    <span className="font-mono font-semibold">0.52</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                    <span className="font-medium">Gamma (44400 CE)</span>
-                    <span className="font-mono font-semibold">0.0012</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                    <span className="font-medium">Theta (44400 CE)</span>
-                    <span className="font-mono font-semibold text-destructive">-8.25</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                    <span className="font-medium">Vega (44400 CE)</span>
-                    <span className="font-mono font-semibold">12.8</span>
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No Data Available</p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Greeks analysis requires real-time option chain data
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -194,7 +174,7 @@ export default function TradingDashboard() {
               <h2 className="text-2xl font-bold">Paper Trading</h2>
               <div className="text-right">
                 <div className="text-sm text-muted-foreground">Virtual Balance</div>
-                <div className="text-xl font-bold font-mono text-primary">₹50,000</div>
+                <div className="text-lg text-muted-foreground">No Data Available</div>
               </div>
             </div>
             
@@ -220,16 +200,8 @@ export default function TradingDashboard() {
               <Card>
                 <CardContent className="pt-6">
                   <h3 className="text-lg font-semibold mb-4">High Volume Stocks</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Min Volume:</span>
-                      <span className="text-sm font-mono">1M shares</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Volume vs Avg:</span>
-                      <span className="text-sm font-mono">200%+</span>
-                    </div>
-                    <div className="text-sm text-success">✓ Screening active</div>
+                  <div className="text-center py-4">
+                    <p className="text-muted-foreground">No Data Available</p>
                   </div>
                 </CardContent>
               </Card>
@@ -237,16 +209,8 @@ export default function TradingDashboard() {
               <Card>
                 <CardContent className="pt-6">
                   <h3 className="text-lg font-semibold mb-4">High Price Stocks</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Min Price:</span>
-                      <span className="text-sm font-mono">₹1000</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Market Cap:</span>
-                      <span className="text-sm font-mono">₹10,000Cr+</span>
-                    </div>
-                    <div className="text-sm text-success">✓ Screening active</div>
+                  <div className="text-center py-4">
+                    <p className="text-muted-foreground">No Data Available</p>
                   </div>
                 </CardContent>
               </Card>
@@ -254,16 +218,8 @@ export default function TradingDashboard() {
               <Card>
                 <CardContent className="pt-6">
                   <h3 className="text-lg font-semibold mb-4">High Volatility Stocks</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Min Volatility:</span>
-                      <span className="text-sm font-mono">30%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Price Change:</span>
-                      <span className="text-sm font-mono">±5%+</span>
-                    </div>
-                    <div className="text-sm text-success">✓ Screening active</div>
+                  <div className="text-center py-4">
+                    <p className="text-muted-foreground">No Data Available</p>
                   </div>
                 </CardContent>
               </Card>

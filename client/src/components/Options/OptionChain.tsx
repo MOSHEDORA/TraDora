@@ -4,8 +4,8 @@ import { OptionChainData } from "@/types/trading";
 import { useState } from "react";
 
 export function OptionChain() {
-  const [selectedUnderlying] = useState('BANKNIFTY');
-  const [selectedExpiry] = useState('25-Jan-2024');
+  const [selectedUnderlying] = useState('');
+  const [selectedExpiry] = useState('');
 
   const { data: optionChain, isLoading } = useQuery<OptionChainData[]>({
     queryKey: ['/api/option-chain', { underlying: selectedUnderlying, expiry: selectedExpiry }],

@@ -17,52 +17,8 @@ interface StrategyRecommendation {
 }
 
 export function OptionsStrategies() {
-  const strategies: StrategyRecommendation[] = [
-    {
-      name: "Long Straddle",
-      description: "High IV suggests big move expected. Consider 44,400 strike straddle.",
-      legs: [
-        "Buy 44400 CE @ ₹142.75",
-        "Buy 44400 PE @ ₹48.25"
-      ],
-      netDebit: 191.00,
-      maxProfit: "Unlimited",
-      maxLoss: "₹9,550 (Net Debit)",
-      breakeven: "44,209 / 44,591",
-      marketView: 'NEUTRAL',
-      riskLevel: 'HIGH'
-    },
-    {
-      name: "Iron Condor",
-      description: "Range-bound strategy for sideways movement. Limited risk/reward.",
-      legs: [
-        "Sell 44200 CE @ ₹185.50",
-        "Buy 44600 CE @ ₹95.25",
-        "Sell 44600 PE @ ₹65.75",
-        "Buy 44200 PE @ ₹25.75"
-      ],
-      netCredit: 159.25,
-      maxProfit: "₹7,962 (Net Credit)",
-      maxLoss: "₹12,038",
-      breakeven: "44,359 / 44,441",
-      marketView: 'NEUTRAL',
-      riskLevel: 'MEDIUM'
-    },
-    {
-      name: "Bull Call Spread",
-      description: "Moderate bullish outlook with limited risk and reward.",
-      legs: [
-        "Buy 44400 CE @ ₹142.75",
-        "Sell 44500 CE @ ₹118.50"
-      ],
-      netDebit: 24.25,
-      maxProfit: "₹3,787 (Spread - Net Debit)",
-      maxLoss: "₹1,212 (Net Debit)",
-      breakeven: "44,424",
-      marketView: 'BULLISH',
-      riskLevel: 'MEDIUM'
-    }
-  ];
+  // No mock data - strategies should be generated from real market data
+  const strategies: StrategyRecommendation[] = [];
 
   const getMarketViewIcon = (view: string) => {
     switch (view) {
@@ -94,7 +50,15 @@ export function OptionsStrategies() {
         <CardTitle>Recommended Strategies</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {strategies.map((strategy, index) => (
+        {strategies.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground text-lg">No Data Available</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Strategy recommendations require real-time option chain data
+            </p>
+          </div>
+        ) : (
+          strategies.map((strategy, index) => (
           <div 
             key={strategy.name}
             className={`p-4 rounded-lg border ${getMarketViewColor(strategy.marketView)}`}
@@ -175,7 +139,8 @@ export function OptionsStrategies() {
               </Button>
             </div>
           </div>
-        ))}
+          ))
+        )}
       </CardContent>
     </Card>
   );
