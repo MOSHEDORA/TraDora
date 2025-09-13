@@ -131,8 +131,8 @@ export class MarketDataService {
 
     const data = await response.json();
     
-    // Mock implementation for now - in production, parse actual Angel One response
-    return symbols.map(symbol => this.generateMockData(symbol));
+    // Return error if Angel One API response cannot be parsed
+    throw new Error('Angel One API response parsing failed - no valid data available');
   }
 
   private async getYahooFinanceData(symbols: string[]): Promise<InsertMarketData[]> {
@@ -153,8 +153,8 @@ export class MarketDataService {
         
         if (!response.ok) {
           console.error(`Yahoo Finance API error for ${symbols[i]}: ${response.statusText}`);
-          // Generate fallback data
-          results.push(this.generateMockData(symbols[i]));
+          // Skip symbol if no data available
+          console.warn(`No data available for ${symbols[i]}`);
           continue;
         }
 
@@ -177,39 +177,16 @@ export class MarketDataService {
             volume: meta.regularMarketVolume || 0
           });
         } else {
-          results.push(this.generateMockData(symbols[i]));
+          console.warn(`No valid data received for ${symbols[i]}`);
         }
       } catch (error) {
         console.error(`Error fetching data for ${symbols[i]}:`, error);
-        results.push(this.generateMockData(symbols[i]));
       }
     }
 
     return results;
   }
 
-  private generateMockData(symbol: string): InsertMarketData {
-    // Fallback mock data when APIs fail
-    const baseValues: Record<string, { price: number; volume: number }> = {
-      'NIFTY': { price: 19385.50, volume: 125000 },
-      'BANKNIFTY': { price: 44287.25, volume: 85000 },
-      'SENSEX': { price: 65220.30, volume: 95000 }
-    };
-
-    const base = baseValues[symbol] || { price: 1000, volume: 50000 };
-    const changePercent = (Math.random() - 0.5) * 4; // -2% to +2%
-    const change = (base.price * changePercent) / 100;
-    
-    return {
-      symbol,
-      price: (base.price + change).toFixed(2),
-      change: change.toFixed(2),
-      changePercent: changePercent.toFixed(2),
-      high: (base.price + Math.abs(change) * 1.5).toFixed(2),
-      low: (base.price - Math.abs(change) * 1.2).toFixed(2),
-      volume: Math.floor(base.volume * (0.8 + Math.random() * 0.4))
-    };
-  }
 
   async getOptionChainData(underlying: string, expiry: string) {
     // Try to fetch from NSE API or Angel One
@@ -232,7 +209,7 @@ export class MarketDataService {
       return this.parseNSEOptionChain(data, underlying, expiry);
     } catch (error) {
       console.error('NSE option chain fetch failed:', error);
-      return this.generateMockOptionChain(underlying, expiry);
+      return [];
     }
   }
 
@@ -262,32 +239,6 @@ export class MarketDataService {
     return options;
   }
 
-  private generateMockOptionChain(underlying: string, expiry: string) {
-    const strikes = [];
-    const basePrice = underlying === 'BANKNIFTY' ? 44400 : 19400;
-    const strikeInterval = underlying === 'BANKNIFTY' ? 100 : 50;
-
-    for (let i = -5; i <= 5; i++) {
-      const strike = basePrice + (i * strikeInterval);
-      const atmDistance = Math.abs(i);
-      
-      strikes.push({
-        underlying,
-        expiry,
-        strike: strike.toString(),
-        callLtp: (Math.max(5, 200 - atmDistance * 30) + Math.random() * 10).toFixed(2),
-        putLtp: (Math.max(5, 200 - atmDistance * 30) + Math.random() * 10).toFixed(2),
-        callOi: Math.floor(1000 + Math.random() * 5000),
-        putOi: Math.floor(1000 + Math.random() * 5000),
-        callVolume: Math.floor(500 + Math.random() * 2000),
-        putVolume: Math.floor(500 + Math.random() * 2000),
-        callIv: (15 + Math.random() * 10).toFixed(2),
-        putIv: (15 + Math.random() * 10).toFixed(2)
-      });
-    }
-
-    return strikes;
-  }
 }
 
 export const marketDataService = new MarketDataService();

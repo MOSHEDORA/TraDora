@@ -161,55 +161,12 @@ Return response in this exact JSON format:
     marketData: MarketData[],
     technicalIndicators: Record<string, any>
   ): AIAnalysis {
-    const niftyData = marketData.find(d => d.symbol === 'NIFTY');
-    const bankNiftyData = marketData.find(d => d.symbol === 'BANKNIFTY');
-    
-    const niftyChange = parseFloat(niftyData?.changePercent || '0');
-    const bankNiftyChange = parseFloat(bankNiftyData?.changePercent || '0');
-    
-    let sentiment: 'BULLISH' | 'BEARISH' | 'NEUTRAL' = 'NEUTRAL';
-    let confidence = 50;
-    
-    if (niftyChange > 0.5 && bankNiftyChange > 0.3) {
-      sentiment = 'BULLISH';
-      confidence = 75;
-    } else if (niftyChange < -0.5 && bankNiftyChange < -0.3) {
-      sentiment = 'BEARISH';
-      confidence = 75;
-    }
-
-    const signals = [];
-    
-    if (sentiment === 'BULLISH') {
-      signals.push({
-        type: 'BUY' as const,
-        instrument: 'BANKNIFTY 44400 CE',
-        entryPrice: 142.75,
-        targetPrice: 165.00,
-        stopLoss: 125.00,
-        reasoning: 'Bullish momentum with volume confirmation. Key resistance breakout expected.'
-      });
-    } else if (sentiment === 'BEARISH') {
-      signals.push({
-        type: 'SELL' as const,
-        instrument: 'NIFTY 19400 PE',
-        entryPrice: 85.25,
-        targetPrice: 105.00,
-        stopLoss: 75.00,
-        reasoning: 'Bearish divergence on technical indicators. Support level breakdown likely.'
-      });
-    }
-
     return {
-      sentiment,
-      confidence,
-      signals,
-      marketInsights: `Market showing ${sentiment.toLowerCase()} bias. Nifty ${niftyChange > 0 ? '+' : ''}${niftyChange}%, Bank Nifty ${bankNiftyChange > 0 ? '+' : ''}${bankNiftyChange}%. Volume analysis suggests ${sentiment === 'BULLISH' ? 'buying interest' : sentiment === 'BEARISH' ? 'selling pressure' : 'consolidation'}.`,
-      recommendations: sentiment === 'BULLISH' 
-        ? 'Focus on Call options with tight stop-losses. Target quick scalping opportunities on breakouts.'
-        : sentiment === 'BEARISH'
-        ? 'Consider Put options on weakness. Watch key support levels for breakdown trades.'
-        : 'Stay cautious in sideways market. Look for range-bound strategies or wait for clear directional move.'
+      sentiment: 'NEUTRAL',
+      confidence: 0,
+      signals: [],
+      marketInsights: 'No Data Available - AI analysis requires OpenRouter API key',
+      recommendations: 'No Data Available - Please configure AI service API key for analysis'
     };
   }
 
@@ -283,28 +240,7 @@ Return in JSON format:
   }
 
   private generateFallbackSignal(instrument: string, currentPrice: number, technicalData: any) {
-    // Simple rule-based signal generation
-    const isCall = instrument.includes('CE');
-    const isPut = instrument.includes('PE');
-    
-    if (isCall) {
-      return {
-        type: 'BUY' as const,
-        entryPrice: currentPrice,
-        targetPrice: currentPrice * 1.15,
-        stopLoss: currentPrice * 0.85,
-        reasoning: 'Call option buy signal based on bullish momentum indicators.'
-      };
-    } else if (isPut) {
-      return {
-        type: 'BUY' as const,
-        entryPrice: currentPrice,
-        targetPrice: currentPrice * 1.20,
-        stopLoss: currentPrice * 0.80,
-        reasoning: 'Put option buy signal based on bearish technical setup.'
-      };
-    }
-    
+    // No fallback signals - return null when API is not available
     return null;
   }
 }

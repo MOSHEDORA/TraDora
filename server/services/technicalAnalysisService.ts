@@ -154,8 +154,8 @@ export class TechnicalAnalysisService {
       const symbolData = marketData.filter(d => d.symbol === symbol);
       
       if (symbolData.length === 0) {
-        // Generate default technical data if no historical data
-        result[symbol] = this.generateDefaultTechnicals(symbol);
+        // Skip symbols with no data
+        console.warn(`No technical data available for ${symbol}`);
         continue;
       }
       
@@ -178,31 +178,6 @@ export class TechnicalAnalysisService {
     return result;
   }
 
-  private generateDefaultTechnicals(symbol: string): TechnicalData {
-    // Default technical values when no data is available
-    const basePrice = symbol === 'NIFTY' ? 19385 : symbol === 'BANKNIFTY' ? 44287 : 65220;
-    
-    return {
-      rsi: 50 + (Math.random() - 0.5) * 40, // 30-70 range
-      macd: {
-        macd: (Math.random() - 0.5) * 50,
-        signal: (Math.random() - 0.5) * 40,
-        histogram: (Math.random() - 0.5) * 20
-      },
-      vwap: basePrice * (0.998 + Math.random() * 0.004),
-      ema20: basePrice * (0.995 + Math.random() * 0.01),
-      ema50: basePrice * (0.99 + Math.random() * 0.02),
-      bollinger: {
-        upper: basePrice * 1.015,
-        middle: basePrice,
-        lower: basePrice * 0.985
-      },
-      supertrend: {
-        value: basePrice * (0.995 + Math.random() * 0.01),
-        direction: Math.random() > 0.5 ? 'LONG' : 'SHORT'
-      }
-    };
-  }
 
   generateSignalFromTechnicals(symbol: string, technicalData: TechnicalData): {
     signal: 'BUY' | 'SELL' | 'HOLD';

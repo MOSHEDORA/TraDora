@@ -58,7 +58,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(marketData);
     } catch (error) {
       console.error('Market data fetch error:', error);
-      res.status(500).json({ error: 'Failed to fetch market data' });
+      res.status(200).json({ error: 'No Data Available', message: 'Failed to fetch real market data' });
     }
   });
 
@@ -88,7 +88,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       console.error('Technical analysis error:', error);
-      res.status(500).json({ error: 'Failed to calculate technical indicators' });
+      res.status(200).json({ error: 'No Data Available', message: 'Technical analysis requires market data' });
     }
   });
 
@@ -103,7 +103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(analysis);
     } catch (error) {
       console.error('AI analysis error:', error);
-      res.status(500).json({ error: 'Failed to generate AI analysis' });
+      res.status(200).json({ error: 'No Data Available', message: 'AI analysis requires API key configuration' });
     }
   });
 
@@ -281,7 +281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(optionChain);
     } catch (error) {
       console.error('Option chain fetch error:', error);
-      res.status(500).json({ error: 'Failed to fetch option chain' });
+      res.status(200).json({ error: 'No Data Available', message: 'Option chain data not available' });
     }
   });
 
@@ -290,39 +290,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { minVolume, minPrice, minVolatility } = req.query;
       
-      // This would typically screen a larger universe of stocks
-      // For demo, we'll return some mock screened results
-      const screenedStocks = [
-        {
-          symbol: 'RELIANCE',
-          name: 'Reliance Industries',
-          price: 2456.75,
-          change: 3.2,
-          volume: 2400000,
-          volatility: 35,
-          aiScore: 85
-        },
-        {
-          symbol: 'TCS',
-          name: 'Tata Consultancy Services',
-          price: 3742.50,
-          change: -1.8,
-          volume: 1800000,
-          volatility: 28,
-          aiScore: 72
-        },
-        {
-          symbol: 'HDFCBANK',
-          name: 'HDFC Bank Limited',
-          price: 1589.25,
-          change: 2.1,
-          volume: 3200000,
-          volatility: 42,
-          aiScore: 91
-        }
-      ];
-      
-      res.json(screenedStocks);
+      // Stock screener requires real market data feed - not available without proper API
+      res.json({ error: 'No Data Available - Stock screener requires real-time data feed' });
     } catch (error) {
       console.error('Stock screener error:', error);
       res.status(500).json({ error: 'Failed to run stock screener' });
