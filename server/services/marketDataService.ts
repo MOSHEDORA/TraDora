@@ -1,4 +1,6 @@
 import { InsertMarketData } from "@shared/schema";
+import { config, isAngelOneConfigured } from "../config";
+import { authenticator } from 'otplib';
 
 interface YahooFinanceQuote {
   symbol: string;
@@ -34,17 +36,18 @@ export class MarketDataService {
   }
 
   private async initializeAngelOne() {
-    const apiKey = process.env.ANGEL_ONE_API_KEY;
-    const clientId = process.env.ANGEL_ONE_CLIENT_ID;
-    const password = process.env.ANGEL_ONE_PASSWORD;
-    const totp = process.env.ANGEL_ONE_TOTP;
-
-    if (!apiKey || !clientId || !password) {
-      console.log('Angel One credentials not found, will use Yahoo Finance as primary source');
+    if (!isAngelOneConfigured()) {
+      console.log('Angel One credentials not configured properly');
       return;
     }
 
+    const { apiKey, clientId, mpin, totpSecret } = config.angelOne;
+
     try {
+      // Generate TOTP from the secret
+      const totp = authenticator.generate(totpSecret);
+      console.log('Attempting Angel One authentication...');
+
       const response = await fetch(`${this.baseUrls.angelOne}/rest/auth/angelbroking/user/v1/loginByPassword`, {
         method: 'POST',
         headers: {
@@ -59,7 +62,7 @@ export class MarketDataService {
         },
         body: JSON.stringify({
           clientcode: clientId,
-          password: password,
+          password: mpin,
           totp: totp
         })
       });
@@ -69,7 +72,11 @@ export class MarketDataService {
         if (data.status && data.data?.jwtToken) {
           this.angelOneToken = data.data.jwtToken;
           console.log('Angel One authentication successful');
+        } else {
+          console.error('Angel One authentication failed:', data.message || 'Invalid response format');
         }
+      } else {
+        console.error('Angel One authentication failed with status:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Angel One authentication failed:', error);
@@ -106,17 +113,19 @@ export class MarketDataService {
       tradingsymbol: symbol
     }));
 
-    const response = await fetch(`${this.baseUrls.angelOne}/rest/secure/angelbroking/order/v1/getLTP`, {
+    const response = await fetch(`${this.baseUrls.angelOne}/rest/secure/angelbroking/order/v1/getLtpData`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'Authorization': `Bearer ${this.angelOneToken}`,
+        'X-PrivateKey': config.angelOne.apiKey,
         'X-UserType': 'USER',
         'X-SourceID': 'WEB',
         'X-ClientLocalIP': '127.0.0.1',
         'X-ClientPublicIP': '127.0.0.1',
-        'X-MACAddress': '00:00:00:00:00:00'
+        'X-MACAddress': '00:00:00:00:00:00',
+        'User-Agent': 'Mozilla/5.0'
       },
       body: JSON.stringify({
         exchange: "NSE",
@@ -126,13 +135,47 @@ export class MarketDataService {
     });
 
     if (!response.ok) {
-      throw new Error(`Angel One API error: ${response.statusText}`);
+      throw new Error(`Angel One LTP API error: ${response.status} ${response.statusText}`);
     }
 
-    const data = await response.json();
+    // Check if response is JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await response.text();
+      console.error('Angel One returned non-JSON response:', text.substring(0, 200));
+      throw new Error('Angel One API returned HTML instead of JSON');
+    }
+
+    const body = await response.json();
     
-    // Return error if Angel One API response cannot be parsed
-    throw new Error('Angel One API response parsing failed - no valid data available');
+    if (!body.status || !body.data) {
+      console.error('Angel One LTP invalid payload:', body.message || body.error || 'Unknown error');
+      throw new Error(`Angel One LTP: ${body.message || 'Invalid response format'}`);
+    }
+
+    // Map Angel One response to our format
+    const results: InsertMarketData[] = [];
+    const data = body.data;
+    
+    for (let i = 0; i < symbols.length; i++) {
+      const symbol = symbols[i];
+      const quote = Array.isArray(data) ? data[i] : data;
+      
+      if (quote) {
+        results.push({
+          symbol: symbol,
+          price: (quote.ltp || quote.lastPrice || 0).toString(),
+          change: (quote.change || 0).toString(),
+          changePercent: (quote.pChange || 0).toString(),
+          high: (quote.high || quote.dayHigh || 0).toString(),
+          low: (quote.low || quote.dayLow || 0).toString(),
+          volume: quote.volume || 0
+        });
+      }
+    }
+    
+    console.log(`Angel One fetched ${results.length} quotes for symbols:`, symbols);
+    return results;
   }
 
   private async getYahooFinanceData(symbols: string[]): Promise<InsertMarketData[]> {

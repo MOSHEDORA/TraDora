@@ -1,6 +1,7 @@
 import { Moon, Sun, Settings, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 interface HeaderProps {
@@ -8,8 +9,20 @@ interface HeaderProps {
   isDark: boolean;
 }
 
+interface ServiceStatus {
+  name: string;
+  status: 'connected' | 'disconnected' | 'error';
+  error?: string;
+}
+
 export function Header({ onThemeToggle, isDark }: HeaderProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Fetch real service statuses
+  const { data: serviceStatuses = [] } = useQuery<ServiceStatus[]>({
+    queryKey: ['/api/service-status'],
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -53,53 +66,23 @@ export function Header({ onThemeToggle, isDark }: HeaderProps) {
       <div className="flex items-center space-x-4">
         <TooltipProvider>
           <div className="hidden lg:flex items-center space-x-3 text-sm">
-            <Tooltip>
-              <TooltipTrigger>
-                <div className="flex items-center space-x-1 cursor-pointer">
-                  <div className="w-2 h-2 bg-destructive rounded-full"></div>
-                  <span className="text-muted-foreground">Angel One</span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Angel One credentials not found</p>
-              </TooltipContent>
-            </Tooltip>
-            
-            <Tooltip>
-              <TooltipTrigger>
-                <div className="flex items-center space-x-1 cursor-pointer">
-                  <div className="w-2 h-2 bg-destructive rounded-full"></div>
-                  <span className="text-muted-foreground">Yahoo Finance</span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Yahoo Finance data source not available</p>
-              </TooltipContent>
-            </Tooltip>
-            
-            <Tooltip>
-              <TooltipTrigger>
-                <div className="flex items-center space-x-1 cursor-pointer">
-                  <div className="w-2 h-2 bg-destructive rounded-full"></div>
-                  <span className="text-muted-foreground">NSE API</span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>NSE API connection failed</p>
-              </TooltipContent>
-            </Tooltip>
-            
-            <Tooltip>
-              <TooltipTrigger>
-                <div className="flex items-center space-x-1 cursor-pointer">
-                  <div className="w-2 h-2 bg-destructive rounded-full"></div>
-                  <span className="text-muted-foreground">OpenRouter AI</span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>OpenRouter API key not found</p>
-              </TooltipContent>
-            </Tooltip>
+            {serviceStatuses.map((service) => {
+              const statusColor = service.status === 'connected' ? 'bg-success' : 'bg-destructive';
+              
+              return (
+                <Tooltip key={service.name}>
+                  <TooltipTrigger>
+                    <div className="flex items-center space-x-1 cursor-pointer">
+                      <div className={`w-2 h-2 rounded-full ${statusColor}`}></div>
+                      <span className="text-muted-foreground">{service.name}</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{service.error || `${service.name} ${service.status}`}</p>
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
           </div>
         </TooltipProvider>
         

@@ -6,6 +6,7 @@ import { marketDataService } from "./services/marketDataService";
 import { aiService } from "./services/aiService";
 import { technicalAnalysisService } from "./services/technicalAnalysisService";
 import { insertTradingSignalSchema, insertPaperTradeSchema } from "@shared/schema";
+import { getServiceStatuses } from "./config";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -295,6 +296,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Stock screener error:', error);
       res.status(500).json({ error: 'Failed to run stock screener' });
+    }
+  });
+
+  // Service Status API
+  app.get('/api/service-status', async (req, res) => {
+    try {
+      const statuses = getServiceStatuses();
+      res.json(statuses);
+    } catch (error) {
+      console.error('Service status error:', error);
+      res.status(500).json({ error: 'Failed to get service status' });
     }
   });
 

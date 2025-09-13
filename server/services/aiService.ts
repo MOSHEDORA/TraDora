@@ -1,4 +1,5 @@
 import { TechnicalIndicators, MarketData } from "@shared/schema";
+import { config, isOpenRouterConfigured } from "../config";
 
 interface OpenRouterResponse {
   choices: Array<{
@@ -55,7 +56,7 @@ export class AIService {
           'X-Title': 'TradePro Analytics'
         },
         body: JSON.stringify({
-          model: 'mistralai/mistral-7b-instruct:free',
+          model: config.openRouter.model,
           messages: [
             {
               role: 'system',
@@ -196,7 +197,7 @@ Return in JSON format:
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'mistralai/mistral-7b-instruct:free',
+          model: config.openRouter.model,
           messages: [
             {
               role: 'system',
