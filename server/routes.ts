@@ -318,27 +318,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const signalAnalysis = technicalAnalysisService.generateSignalFromTechnicals(symbol, data);
         
         if (signalAnalysis.signal !== 'HOLD' && signalAnalysis.strength > 70) {
-          // Generate AI signal for high-confidence technical signals
-          const instrument = symbol === 'BANKNIFTY' ? 'BANKNIFTY 44400 CE' : 'NIFTY 19400 CE';
-          const currentPrice = parseFloat(marketData.find(d => d.symbol === symbol)?.price || '0');
-          
-          if (currentPrice > 0) {
-            const aiSignal = await aiService.generateTradingSignal(instrument, currentPrice, data);
-            
-            if (aiSignal) {
-              const signal = await storage.createTradingSignal({
-                instrument,
-                signalType: aiSignal.type,
-                entryPrice: aiSignal.entryPrice.toString(),
-                targetPrice: aiSignal.targetPrice.toString(),
-                stopLoss: aiSignal.stopLoss.toString(),
-                reasoning: aiSignal.reasoning,
-                confidence: Math.round(signalAnalysis.strength)
-              });
-              
-              broadcast({ type: 'NEW_SIGNAL', data: signal });
-            }
-          }
+          // Signal generation disabled - requires real option chain data and API access
+          console.log(`High-confidence signal detected for ${symbol} but automatic signal generation disabled`);
         }
       }
       

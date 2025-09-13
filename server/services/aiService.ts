@@ -129,16 +129,7 @@ Return response in this exact JSON format:
 {
   "sentiment": "BULLISH|BEARISH|NEUTRAL",
   "confidence": 85,
-  "signals": [
-    {
-      "type": "BUY|SELL",
-      "instrument": "BANKNIFTY 44400 CE",
-      "entryPrice": 142.75,
-      "targetPrice": 165.00,
-      "stopLoss": 125.00,
-      "reasoning": "Technical analysis reasoning"
-    }
-  ],
+  "signals": [],
   "marketInsights": "Current market analysis and key levels",
   "recommendations": "Strategy recommendations for today"
 }
