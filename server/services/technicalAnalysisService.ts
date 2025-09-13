@@ -1,0 +1,262 @@
+import { MarketData } from "@shared/schema";
+
+interface TechnicalData {
+  rsi: number;
+  macd: {
+    macd: number;
+    signal: number;
+    histogram: number;
+  };
+  vwap: number;
+  ema20: number;
+  ema50: number;
+  bollinger: {
+    upper: number;
+    middle: number;
+    lower: number;
+  };
+  supertrend: {
+    value: number;
+    direction: 'LONG' | 'SHORT';
+  };
+}
+
+export class TechnicalAnalysisService {
+  
+  calculateRSI(prices: number[], period: number = 14): number {
+    if (prices.length < period + 1) return 50;
+    
+    let gains = 0;
+    let losses = 0;
+    
+    for (let i = 1; i <= period; i++) {
+      const change = prices[i] - prices[i - 1];
+      if (change > 0) gains += change;
+      else losses -= change;
+    }
+    
+    let avgGain = gains / period;
+    let avgLoss = losses / period;
+    
+    for (let i = period + 1; i < prices.length; i++) {
+      const change = prices[i] - prices[i - 1];
+      if (change > 0) {
+        avgGain = (avgGain * (period - 1) + change) / period;
+        avgLoss = (avgLoss * (period - 1)) / period;
+      } else {
+        avgGain = (avgGain * (period - 1)) / period;
+        avgLoss = (avgLoss * (period - 1) - change) / period;
+      }
+    }
+    
+    if (avgLoss === 0) return 100;
+    const rs = avgGain / avgLoss;
+    return 100 - (100 / (1 + rs));
+  }
+
+  calculateEMA(prices: number[], period: number): number {
+    if (prices.length === 0) return 0;
+    if (prices.length < period) return prices[prices.length - 1];
+    
+    const multiplier = 2 / (period + 1);
+    let ema = prices[0];
+    
+    for (let i = 1; i < prices.length; i++) {
+      ema = (prices[i] - ema) * multiplier + ema;
+    }
+    
+    return ema;
+  }
+
+  calculateMACD(prices: number[], fastPeriod: number = 12, slowPeriod: number = 26, signalPeriod: number = 9) {
+    const emaFast = this.calculateEMA(prices, fastPeriod);
+    const emaSlow = this.calculateEMA(prices, slowPeriod);
+    const macd = emaFast - emaSlow;
+    
+    // For simplicity, using a basic signal calculation
+    const signal = macd * 0.9; // Simplified signal line
+    const histogram = macd - signal;
+    
+    return { macd, signal, histogram };
+  }
+
+  calculateVWAP(prices: number[], volumes: number[]): number {
+    if (prices.length !== volumes.length || prices.length === 0) return 0;
+    
+    let totalPriceVolume = 0;
+    let totalVolume = 0;
+    
+    for (let i = 0; i < prices.length; i++) {
+      totalPriceVolume += prices[i] * volumes[i];
+      totalVolume += volumes[i];
+    }
+    
+    return totalVolume > 0 ? totalPriceVolume / totalVolume : prices[prices.length - 1];
+  }
+
+  calculateBollingerBands(prices: number[], period: number = 20, multiplier: number = 2) {
+    if (prices.length < period) {
+      const lastPrice = prices[prices.length - 1] || 0;
+      return {
+        upper: lastPrice * 1.02,
+        middle: lastPrice,
+        lower: lastPrice * 0.98
+      };
+    }
+    
+    const sma = prices.slice(-period).reduce((sum, price) => sum + price, 0) / period;
+    const variance = prices.slice(-period).reduce((sum, price) => sum + Math.pow(price - sma, 2), 0) / period;
+    const stdDev = Math.sqrt(variance);
+    
+    return {
+      upper: sma + (stdDev * multiplier),
+      middle: sma,
+      lower: sma - (stdDev * multiplier)
+    };
+  }
+
+  calculateSupertrend(highs: number[], lows: number[], closes: number[], period: number = 10, multiplier: number = 3) {
+    if (closes.length < period) {
+      return {
+        value: closes[closes.length - 1] || 0,
+        direction: 'LONG' as const
+      };
+    }
+    
+    // Simplified ATR calculation
+    let atr = 0;
+    for (let i = 1; i < Math.min(period, closes.length); i++) {
+      const tr = Math.max(
+        highs[i] - lows[i],
+        Math.abs(highs[i] - closes[i - 1]),
+        Math.abs(lows[i] - closes[i - 1])
+      );
+      atr += tr;
+    }
+    atr /= Math.min(period, closes.length - 1);
+    
+    const currentClose = closes[closes.length - 1];
+    const hl2 = (highs[highs.length - 1] + lows[lows.length - 1]) / 2;
+    
+    const upperBand = hl2 + (multiplier * atr);
+    const lowerBand = hl2 - (multiplier * atr);
+    
+    const direction: 'LONG' | 'SHORT' = currentClose <= lowerBand ? 'SHORT' : 'LONG';
+    const value = direction === 'LONG' ? lowerBand : upperBand;
+    
+    return { value, direction };
+  }
+
+  analyzeTechnicals(marketData: MarketData[]): Record<string, TechnicalData> {
+    const result: Record<string, TechnicalData> = {};
+    
+    for (const symbol of ['NIFTY', 'BANKNIFTY', 'SENSEX']) {
+      const symbolData = marketData.filter(d => d.symbol === symbol);
+      
+      if (symbolData.length === 0) {
+        // Generate default technical data if no historical data
+        result[symbol] = this.generateDefaultTechnicals(symbol);
+        continue;
+      }
+      
+      const prices = symbolData.map(d => parseFloat(d.price));
+      const volumes = symbolData.map(d => d.volume);
+      const highs = symbolData.map(d => parseFloat(d.high));
+      const lows = symbolData.map(d => parseFloat(d.low));
+      
+      result[symbol] = {
+        rsi: this.calculateRSI(prices),
+        macd: this.calculateMACD(prices),
+        vwap: this.calculateVWAP(prices, volumes),
+        ema20: this.calculateEMA(prices, 20),
+        ema50: this.calculateEMA(prices, 50),
+        bollinger: this.calculateBollingerBands(prices),
+        supertrend: this.calculateSupertrend(highs, lows, prices)
+      };
+    }
+    
+    return result;
+  }
+
+  private generateDefaultTechnicals(symbol: string): TechnicalData {
+    // Default technical values when no data is available
+    const basePrice = symbol === 'NIFTY' ? 19385 : symbol === 'BANKNIFTY' ? 44287 : 65220;
+    
+    return {
+      rsi: 50 + (Math.random() - 0.5) * 40, // 30-70 range
+      macd: {
+        macd: (Math.random() - 0.5) * 50,
+        signal: (Math.random() - 0.5) * 40,
+        histogram: (Math.random() - 0.5) * 20
+      },
+      vwap: basePrice * (0.998 + Math.random() * 0.004),
+      ema20: basePrice * (0.995 + Math.random() * 0.01),
+      ema50: basePrice * (0.99 + Math.random() * 0.02),
+      bollinger: {
+        upper: basePrice * 1.015,
+        middle: basePrice,
+        lower: basePrice * 0.985
+      },
+      supertrend: {
+        value: basePrice * (0.995 + Math.random() * 0.01),
+        direction: Math.random() > 0.5 ? 'LONG' : 'SHORT'
+      }
+    };
+  }
+
+  generateSignalFromTechnicals(symbol: string, technicalData: TechnicalData): {
+    signal: 'BUY' | 'SELL' | 'HOLD';
+    strength: number;
+    reasoning: string;
+  } {
+    let score = 0;
+    const reasons: string[] = [];
+    
+    // RSI analysis
+    if (technicalData.rsi < 30) {
+      score += 2;
+      reasons.push('RSI oversold');
+    } else if (technicalData.rsi > 70) {
+      score -= 2;
+      reasons.push('RSI overbought');
+    }
+    
+    // MACD analysis
+    if (technicalData.macd.macd > technicalData.macd.signal && technicalData.macd.histogram > 0) {
+      score += 2;
+      reasons.push('MACD bullish crossover');
+    } else if (technicalData.macd.macd < technicalData.macd.signal && technicalData.macd.histogram < 0) {
+      score -= 2;
+      reasons.push('MACD bearish crossover');
+    }
+    
+    // EMA analysis
+    if (technicalData.ema20 > technicalData.ema50) {
+      score += 1;
+      reasons.push('EMA bullish alignment');
+    } else {
+      score -= 1;
+      reasons.push('EMA bearish alignment');
+    }
+    
+    // Supertrend analysis
+    if (technicalData.supertrend.direction === 'LONG') {
+      score += 1;
+      reasons.push('Supertrend bullish');
+    } else {
+      score -= 1;
+      reasons.push('Supertrend bearish');
+    }
+    
+    const signal = score > 2 ? 'BUY' : score < -2 ? 'SELL' : 'HOLD';
+    const strength = Math.min(100, Math.abs(score) * 20);
+    
+    return {
+      signal,
+      strength,
+      reasoning: reasons.join(', ')
+    };
+  }
+}
+
+export const technicalAnalysisService = new TechnicalAnalysisService();
