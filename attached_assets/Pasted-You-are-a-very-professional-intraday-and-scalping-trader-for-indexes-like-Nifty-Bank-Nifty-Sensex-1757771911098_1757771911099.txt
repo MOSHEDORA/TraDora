@@ -1,0 +1,79 @@
+You are a very professional intraday and scalping trader for indexes like Nifty, Bank, Nifty, Sensex. So, if you are a professional trader in scalping and intraday, so that you can get minimum 1000 rupees profit everyday whether it is a bullish market, bearish market, or neutral market. So, what will you do like once you get the historical data like whether you will analyze, whether you will check for the technical indicators, how you will do and what are the chart patterns you will follow. And whatever it is, what a human professional trader will do, I need a bot like that. So, you give me a prompt to create that bot so that it should think like a human, means it should be a machine with machine learning. So, it should get all the previous data, what is happening it should check, it should analyze, and it should predict, and it should give me the signals. Everyday, whatever the market it is, I need to get the profit of minimum 1000 rupees. take real time data from angel if it ffail then yahoo finance also news if u need, add one more thing I want live signals just grab every oppurtunity along with above give me a single prompt which will do all these also a tab for papertrading
+
+
+Add Live prices and also please check if any wrong predictions is running or mock data is there or dummy data is there, just take live prices and do as I am going to invest my real money in it believing in you
+
+
+Step 1: Core Trading Brain
+
+Build an AI-powered trading assistant that thinks like a professional intraday and scalping trader in Nifty, Bank Nifty, and Sensex.
+The AI should:
+
+Analyze historical and live market data.
+
+Apply candlestick chart patterns (Doji, Engulfing, Hammer, Shooting Star, etc.).
+
+Use technical indicators (VWAP, EMA crossover, RSI, MACD, Bollinger Bands, Supertrend).
+
+Consider news & sentiment.
+
+Generate buy/sell/hold signals with reasoning.
+
+Ensure simulated strategies always attempt to make at least ₹1000 profit/day in all market conditions (bullish, bearish, sideways).
+
+Step 2: Data Sources & Fallbacks
+
+Connect to real-time data in this order:
+
+Angel One API (primary)
+
+Yahoo Finance (secondary)
+
+NSE option chain API (fallback)
+If all fail,no simulate dummy data tell me Data not available to keep the app running.
+
+Step 3: Options Analysis Tab
+
+Add a dedicated Options Tab for analyzing Option Chain data (Bank Nifty & Nifty).
+
+Fetch Option Chain (CE & PE).
+
+Analyze OI, IV, PCR, Greeks (Delta, Gamma, Theta, Vega).
+
+Predict option price movement.
+
+Suggest strategies like Straddle, Strangle, Iron Condor depending on market volatility.
+
+Provide signals like “Buy PE 44500 @ ₹250, SL ₹180, Target ₹350”.
+
+Step 4: Live Signals & Paper Trading
+
+Add a Live Signals Tab to show AI-generated trade alerts in real time.
+
+Example: “Scalp Buy: BankNifty 44900 CE @ ₹120, Target ₹140, SL ₹110”.
+
+Continuously update signals based on price action.
+
+Add a Paper Trading Tab where trades can be executed virtually with:
+
+Trade history
+
+P&L tracking
+
+Daily report on profit/loss
+
+Step 5: AI & UI Integration
+
+Use Mistral + LLaMA (via OpenRouter API) for ML/AI analysis and reasoning.
+
+AI should think like a human trader, adapting to market conditions.
+
+Frontend should have 4 tabs:
+
+Dashboard → Market overview, index levels, sentiment
+
+Live Signals → Intraday & scalping trades
+
+Options Analysis → Option chain insights & strategies
+
+Paper Trading → Execute dummy trades & track P&L
