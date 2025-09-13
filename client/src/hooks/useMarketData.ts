@@ -36,32 +36,48 @@ export function useMarketData() {
 
   // Process technical indicators
   const technicalIndicators: TechnicalIndicator[] = technicalAnalysis ? 
-    Object.entries(technicalAnalysis).flatMap(([symbol, data]: [string, any]) => [
-      {
-        name: `${symbol} VWAP`,
-        value: data.vwap?.toFixed(2) || '0',
-        signal: data.vwap > parseFloat(currentMarketData.find(d => d.symbol === symbol)?.price.toString() || '0') ? 'SELL' : 'BUY',
-        color: data.vwap > parseFloat(currentMarketData.find(d => d.symbol === symbol)?.price.toString() || '0') ? 'destructive' : 'success'
-      },
-      {
-        name: `${symbol} RSI`,
-        value: data.rsi?.toFixed(2) || '50',
-        signal: data.rsi > 70 ? 'SELL' : data.rsi < 30 ? 'BUY' : 'NEUTRAL',
-        color: data.rsi > 70 ? 'destructive' : data.rsi < 30 ? 'success' : 'warning'
-      },
-      {
-        name: `${symbol} MACD`,
-        value: data.macd?.macd?.toFixed(2) || '0',
-        signal: data.macd?.macd > data.macd?.signal ? 'BUY' : 'SELL',
-        color: data.macd?.macd > data.macd?.signal ? 'success' : 'destructive'
-      },
-      {
-        name: `${symbol} Supertrend`,
-        value: data.supertrend?.value?.toFixed(2) || '0',
-        signal: data.supertrend?.direction === 'LONG' ? 'BUY' : 'SELL',
-        color: data.supertrend?.direction === 'LONG' ? 'success' : 'destructive'
-      }
-    ]) : [];
+    Object.entries(technicalAnalysis).flatMap(([symbol, data]: [string, any]) => {
+      const currentPrice = parseFloat(currentMarketData.find(d => d.symbol === symbol)?.price.toString() || '0');
+      
+      return [
+        {
+          name: `${symbol} VWAP`,
+          value: data.vwap?.toFixed(2) || '0',
+          signal: data.vwap > currentPrice ? 'SELL' : 'BUY',
+          color: data.vwap > currentPrice ? 'destructive' : 'success'
+        },
+        {
+          name: `${symbol} RSI`,
+          value: data.rsi?.toFixed(2) || '50',
+          signal: data.rsi > 70 ? 'SELL' : data.rsi < 30 ? 'BUY' : 'NEUTRAL',
+          color: data.rsi > 70 ? 'destructive' : data.rsi < 30 ? 'success' : 'warning'
+        },
+        {
+          name: `${symbol} MACD`,
+          value: `${data.macd?.macd?.toFixed(2) || '0'} | ${data.macd?.signal?.toFixed(2) || '0'}`,
+          signal: data.macd?.macd > data.macd?.signal ? 'BUY' : 'SELL',
+          color: data.macd?.macd > data.macd?.signal ? 'success' : 'destructive'
+        },
+        {
+          name: `${symbol} EMA 20/50`,
+          value: `${data.ema20?.toFixed(2) || '0'} / ${data.ema50?.toFixed(2) || '0'}`,
+          signal: data.ema20 > data.ema50 ? 'BUY' : 'SELL',
+          color: data.ema20 > data.ema50 ? 'success' : 'destructive'
+        },
+        {
+          name: `${symbol} Bollinger`,
+          value: `${data.bollinger?.upper?.toFixed(2) || '0'} | ${data.bollinger?.middle?.toFixed(2) || '0'} | ${data.bollinger?.lower?.toFixed(2) || '0'}`,
+          signal: currentPrice > data.bollinger?.upper ? 'SELL' : currentPrice < data.bollinger?.lower ? 'BUY' : 'NEUTRAL',
+          color: currentPrice > data.bollinger?.upper ? 'destructive' : currentPrice < data.bollinger?.lower ? 'success' : 'warning'
+        },
+        {
+          name: `${symbol} Supertrend`,
+          value: data.supertrend?.value?.toFixed(2) || '0',
+          signal: data.supertrend?.direction === 'LONG' ? 'BUY' : 'SELL',
+          color: data.supertrend?.direction === 'LONG' ? 'success' : 'destructive'
+        }
+      ];
+    }) : [];
 
   return {
     marketData: currentMarketData,

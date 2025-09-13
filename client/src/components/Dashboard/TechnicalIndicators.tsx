@@ -49,7 +49,7 @@ export function TechnicalIndicators({ indicators, onRefresh }: TechnicalIndicato
         )}
       </CardHeader>
       <CardContent className="space-y-4">
-        {indicators.slice(0, 8).map((indicator, index) => (
+        {indicators.slice(0, 18).map((indicator, index) => (
           <div 
             key={`${indicator.name}-${index}`}
             className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
