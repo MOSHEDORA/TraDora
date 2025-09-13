@@ -1,5 +1,6 @@
 import { Moon, Sun, Settings, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useEffect, useState } from "react";
 
 interface HeaderProps {
@@ -50,20 +51,57 @@ export function Header({ onThemeToggle, isDark }: HeaderProps) {
       </div>
       
       <div className="flex items-center space-x-4">
-        <div className="hidden lg:flex items-center space-x-3 text-sm">
-          <div className="flex items-center space-x-1">
-            <div className="w-2 h-2 bg-success rounded-full"></div>
-            <span className="text-muted-foreground">Angel One</span>
+        <TooltipProvider>
+          <div className="hidden lg:flex items-center space-x-3 text-sm">
+            <Tooltip>
+              <TooltipTrigger>
+                <div className="flex items-center space-x-1 cursor-pointer">
+                  <div className="w-2 h-2 bg-destructive rounded-full"></div>
+                  <span className="text-muted-foreground">Angel One</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Angel One credentials not found</p>
+              </TooltipContent>
+            </Tooltip>
+            
+            <Tooltip>
+              <TooltipTrigger>
+                <div className="flex items-center space-x-1 cursor-pointer">
+                  <div className="w-2 h-2 bg-destructive rounded-full"></div>
+                  <span className="text-muted-foreground">Yahoo Finance</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Yahoo Finance data source not available</p>
+              </TooltipContent>
+            </Tooltip>
+            
+            <Tooltip>
+              <TooltipTrigger>
+                <div className="flex items-center space-x-1 cursor-pointer">
+                  <div className="w-2 h-2 bg-destructive rounded-full"></div>
+                  <span className="text-muted-foreground">NSE API</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>NSE API connection failed</p>
+              </TooltipContent>
+            </Tooltip>
+            
+            <Tooltip>
+              <TooltipTrigger>
+                <div className="flex items-center space-x-1 cursor-pointer">
+                  <div className="w-2 h-2 bg-destructive rounded-full"></div>
+                  <span className="text-muted-foreground">OpenRouter AI</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>OpenRouter API key not found</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
-          <div className="flex items-center space-x-1">
-            <div className="w-2 h-2 bg-success rounded-full"></div>
-            <span className="text-muted-foreground">Yahoo Finance</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <div className="w-2 h-2 bg-warning rounded-full"></div>
-            <span className="text-muted-foreground">NSE API</span>
-          </div>
-        </div>
+        </TooltipProvider>
         
         <Button
           variant="ghost"

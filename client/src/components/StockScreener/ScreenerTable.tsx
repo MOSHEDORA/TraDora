@@ -62,7 +62,7 @@ export function ScreenerTable() {
     );
   }
 
-  if (!screenedStocks || screenedStocks.length === 0) {
+  if (!screenedStocks || !Array.isArray(screenedStocks) || screenedStocks.length === 0) {
     return (
       <Card data-testid="card-screener-table">
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
