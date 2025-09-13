@@ -180,33 +180,11 @@ export function ScreenerTable() {
             <BarChart3 className="text-primary" size={20} />
             <span>AI Analysis - Top Picks</span>
           </h3>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {screenedStocks.slice(0, 2).map((stock) => (
-              <div 
-                key={`${stock.symbol}-analysis`}
-                className={`p-4 rounded-lg border ${
-                  stock.aiScore >= 80 ? 'bg-success/10 border-success/20' : 'bg-warning/10 border-warning/20'
-                }`}
-                data-testid={`ai-analysis-${stock.symbol}`}
-              >
-                <h4 className={`font-semibold mb-2 ${
-                  stock.aiScore >= 80 ? 'text-success' : 'text-warning'
-                }`}>
-                  {stock.symbol} - {stock.aiScore >= 80 ? 'Strong Buy' : 'Momentum Play'}
-                </h4>
-                <p className="text-sm text-muted-foreground mb-3">
-                  {stock.aiScore >= 80 
-                    ? `Exceptional volume surge with breakout above key resistance. Strong fundamentals support the technical setup.`
-                    : `High volatility with positive momentum. Watch for consolidation above current levels for continuation.`
-                  }
-                </p>
-                <div className="space-y-1 text-xs">
-                  <div>Target: {formatCurrency(stock.price * 1.08)} - {formatCurrency(stock.price * 1.12)}</div>
-                  <div>Stop Loss: {formatCurrency(stock.price * 0.95)}</div>
-                  <div>Risk-Reward: 1:{((stock.price * 1.08 - stock.price) / (stock.price - stock.price * 0.95)).toFixed(1)}</div>
-                </div>
-              </div>
-            ))}
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No Data Available</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              AI analysis requires real-time data and API access
+            </p>
           </div>
         </div>
       </CardContent>

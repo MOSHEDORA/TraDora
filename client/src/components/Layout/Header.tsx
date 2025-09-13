@@ -9,21 +9,10 @@ interface HeaderProps {
 
 export function Header({ onThemeToggle, isDark }: HeaderProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [marketStatus, setMarketStatus] = useState<'open' | 'closed'>('open');
 
   useEffect(() => {
     const timer = setInterval(() => {
-      const now = new Date();
-      setCurrentTime(now);
-      
-      // Simple market hours check (9:15 AM to 3:30 PM IST)
-      const hours = now.getHours();
-      const minutes = now.getMinutes();
-      const timeInMinutes = hours * 60 + minutes;
-      const marketOpenTime = 9 * 60 + 15; // 9:15 AM
-      const marketCloseTime = 15 * 60 + 30; // 3:30 PM
-      
-      setMarketStatus(timeInMinutes >= marketOpenTime && timeInMinutes <= marketCloseTime ? 'open' : 'closed');
+      setCurrentTime(new Date());
     }, 1000);
 
     return () => clearInterval(timer);
@@ -49,9 +38,9 @@ export function Header({ onThemeToggle, isDark }: HeaderProps) {
         </div>
         <div className="hidden md:flex items-center space-x-4 text-sm">
           <div className="flex items-center space-x-2">
-            <div className={`w-2 h-2 rounded-full ${marketStatus === 'open' ? 'bg-success animate-pulse' : 'bg-destructive'}`}></div>
+            <div className="w-2 h-2 rounded-full bg-muted"></div>
             <span className="text-muted-foreground">
-              Market {marketStatus === 'open' ? 'Open' : 'Closed'}
+              Market Status: No Data Available
             </span>
           </div>
           <span className="text-muted-foreground font-mono" data-testid="current-time">
