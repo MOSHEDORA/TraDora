@@ -136,55 +136,9 @@ export class MarketDataService {
   }
 
   private async getYahooFinanceData(symbols: string[]): Promise<InsertMarketData[]> {
-    const yahooSymbols = symbols.map(symbol => {
-      const mapping: Record<string, string> = {
-        'NIFTY': '^NSEI',
-        'BANKNIFTY': '^NSEBANK',
-        'SENSEX': '^BSESN'
-      };
-      return mapping[symbol] || `${symbol}.NS`;
-    });
-
-    const results: InsertMarketData[] = [];
-
-    for (let i = 0; i < yahooSymbols.length; i++) {
-      try {
-        const response = await fetch(`${this.baseUrls.yahoo}/${yahooSymbols[i]}?interval=1m&range=1d`);
-        
-        if (!response.ok) {
-          console.error(`Yahoo Finance API error for ${symbols[i]}: ${response.statusText}`);
-          // Skip symbol if no data available
-          console.warn(`No data available for ${symbols[i]}`);
-          continue;
-        }
-
-        const data = await response.json();
-        const result = data.chart?.result?.[0];
-        
-        if (result?.meta && result?.indicators?.quote?.[0]) {
-          const meta = result.meta;
-          const quote = result.indicators.quote[0];
-          const timestamps = result.timestamp;
-          const latestIndex = timestamps.length - 1;
-
-          results.push({
-            symbol: symbols[i],
-            price: meta.regularMarketPrice?.toString() || "0",
-            change: (meta.regularMarketPrice - meta.previousClose)?.toString() || "0",
-            changePercent: (((meta.regularMarketPrice - meta.previousClose) / meta.previousClose) * 100)?.toString() || "0",
-            high: meta.regularMarketDayHigh?.toString() || "0",
-            low: meta.regularMarketDayLow?.toString() || "0",
-            volume: meta.regularMarketVolume || 0
-          });
-        } else {
-          console.warn(`No valid data received for ${symbols[i]}`);
-        }
-      } catch (error) {
-        console.error(`Error fetching data for ${symbols[i]}:`, error);
-      }
-    }
-
-    return results;
+    // Yahoo Finance access disabled - return empty array
+    console.log('Yahoo Finance data source not available - no market data returned');
+    return [];
   }
 
 

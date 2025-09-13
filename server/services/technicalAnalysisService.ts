@@ -150,12 +150,18 @@ export class TechnicalAnalysisService {
   analyzeTechnicals(marketData: MarketData[]): Record<string, TechnicalData> {
     const result: Record<string, TechnicalData> = {};
     
+    // Only return calculations if we have sufficient real market data
+    if (marketData.length === 0) {
+      console.warn('No market data available for technical analysis');
+      return result;
+    }
+    
     for (const symbol of ['NIFTY', 'BANKNIFTY', 'SENSEX']) {
       const symbolData = marketData.filter(d => d.symbol === symbol);
       
-      if (symbolData.length === 0) {
-        // Skip symbols with no data
-        console.warn(`No technical data available for ${symbol}`);
+      // Need at least 50 data points for meaningful technical analysis
+      if (symbolData.length < 50) {
+        console.warn(`Insufficient data for ${symbol} technical analysis (${symbolData.length} points, need 50+)`);
         continue;
       }
       
@@ -163,6 +169,13 @@ export class TechnicalAnalysisService {
       const volumes = symbolData.map(d => d.volume);
       const highs = symbolData.map(d => parseFloat(d.high));
       const lows = symbolData.map(d => parseFloat(d.low));
+      
+      // Validate that we have meaningful price data
+      const validPrices = prices.filter(p => p > 0 && !isNaN(p));
+      if (validPrices.length < 50) {
+        console.warn(`Insufficient valid price data for ${symbol}`);
+        continue;
+      }
       
       result[symbol] = {
         rsi: this.calculateRSI(prices),
