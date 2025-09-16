@@ -96,7 +96,6 @@ export const insertPaperTradeSchema = createInsertSchema(paperTrades).omit({
 
 export const insertMarketDataSchema = createInsertSchema(marketData).omit({
   id: true,
-  timestamp: true,
 });
 
 export const insertTechnicalIndicatorsSchema = createInsertSchema(technicalIndicators).omit({
