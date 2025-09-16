@@ -44,6 +44,46 @@ export class MarketDataService {
     this.initializeHistoricalData();
   }
 
+  private async getPreviousClosePrice(symbol: string): Promise<string | null> {
+    try {
+      // Import storage dynamically to avoid circular dependency
+      const { storage } = await import('../storage');
+      
+      // Get the latest market data for the symbol
+      const latestData = await storage.getLatestMarketData(symbol);
+      return latestData?.price || null;
+    } catch (error) {
+      console.error(`Error getting previous close for ${symbol}:`, error);
+      return null;
+    }
+  }
+
+  private async enrichMarketDataWithOpen(marketData: InsertMarketData[]): Promise<InsertMarketData[]> {
+    const enrichedData: InsertMarketData[] = [];
+    
+    for (const data of marketData) {
+      let openPrice = data.open;
+      
+      // If open price is missing or invalid, try to derive it
+      if (!openPrice || openPrice === '0' || openPrice === 'null') {
+        const previousClose = await this.getPreviousClosePrice(data.symbol);
+        if (previousClose) {
+          openPrice = previousClose;
+        } else {
+          // Fallback to current price if no previous data exists
+          openPrice = data.price;
+        }
+      }
+      
+      enrichedData.push({
+        ...data,
+        open: openPrice
+      });
+    }
+    
+    return enrichedData;
+  }
+
   private async initializeAngelOne() {
     if (!isAngelOneConfigured()) {
       console.log('Angel One credentials not configured properly');
@@ -104,10 +144,12 @@ export class MarketDataService {
       
       try {
         console.log(`Fetching historical data from ${source.name}...`);
-        const data = await source.fetch();
-        if (data && data.length > 20) {
-          console.log(`✓ ${source.name} returned ${data.length} historical records`);
-          return data;
+        const rawData = await source.fetch();
+        if (rawData && rawData.length > 20) {
+          console.log(`✓ ${source.name} returned ${rawData.length} historical records`);
+          // Enrich historical data with proper open prices if needed
+          const enrichedData = await this.enrichMarketDataWithOpen(rawData);
+          return enrichedData;
         }
       } catch (error) {
         console.error(`✗ ${source.name} failed:`, error instanceof Error ? error.message : String(error));
@@ -135,10 +177,12 @@ export class MarketDataService {
       
       try {
         console.log(`Trying ${source.name} for market data...`);
-        const data = await source.fetch();
-        if (data && data.length > 0) {
-          console.log(`✓ ${source.name} returned ${data.length} records`);
-          return data;
+        const rawData = await source.fetch();
+        if (rawData && rawData.length > 0) {
+          console.log(`✓ ${source.name} returned ${rawData.length} records`);
+          // Enrich the data with proper open prices derived from previous close if needed
+          const enrichedData = await this.enrichMarketDataWithOpen(rawData);
+          return enrichedData;
         }
       } catch (error) {
         console.error(`✗ ${source.name} failed:`, error instanceof Error ? error.message : String(error));
@@ -214,14 +258,19 @@ export class MarketDataService {
       const quote = Array.isArray(data) ? data[i] : data;
       
       if (quote) {
+        const current = quote.ltp || quote.lastPrice || 0;
+        const prev = quote.previousClose || current;
+        
         results.push({
           symbol: symbol,
-          price: (quote.ltp || quote.lastPrice || 0).toString(),
+          price: current.toString(),
           change: (quote.change || 0).toString(),
           changePercent: (quote.pChange || 0).toString(),
-          high: (quote.high || quote.dayHigh || 0).toString(),
-          low: (quote.low || quote.dayLow || 0).toString(),
-          volume: quote.volume || 0
+          high: (quote.high || quote.dayHigh || current).toString(),
+          low: (quote.low || quote.dayLow || current).toString(),
+          volume: quote.volume || 0,
+          open: (quote.open || quote.dayOpen || prev).toString(),
+          timestamp: new Date()
         });
       }
     }
@@ -271,10 +320,16 @@ export class MarketDataService {
         
         if (result && result.meta) {
           const meta = result.meta;
-          const current = meta.regularMarketPrice || meta.previousClose;
-          const prev = meta.previousClose;
-          const change = current - prev;
-          const changePercent = (change / prev) * 100;
+          const current = meta.regularMarketPrice || meta.previousClose || 0;
+          const prev = meta.previousClose || current;
+          const change = prev && !isNaN(prev) && prev !== 0 ? current - prev : 0;
+          const changePercent = prev && !isNaN(prev) && prev !== 0 ? (change / prev) * 100 : 0;
+
+          console.log(`Yahoo Finance debug for ${symbol}:`, {
+            current, prev, change, changePercent,
+            open: meta.regularMarketOpen || prev,
+            timestamp: new Date()
+          });
 
           results.push({
             symbol: symbol,
@@ -283,7 +338,9 @@ export class MarketDataService {
             changePercent: changePercent.toString(),
             high: (meta.regularMarketDayHigh || current).toString(),
             low: (meta.regularMarketDayLow || current).toString(),
-            volume: meta.regularMarketVolume || 0
+            volume: meta.regularMarketVolume || 0,
+            open: (meta.regularMarketOpen || prev).toString(),
+            timestamp: new Date()
           });
         }
       } catch (error) {
@@ -329,14 +386,19 @@ export class MarketDataService {
         const quote = quotes[i];
         const symbol = validSymbols[i];
         
+        const current = quote.regularMarketPrice || quote.ask || quote.bid || 0;
+        const prev = quote.regularMarketPreviousClose || current;
+        
         results.push({
           symbol: symbol,
-          price: (quote.regularMarketPrice || quote.ask || quote.bid || 0).toString(),
+          price: current.toString(),
           change: (quote.regularMarketChange || 0).toString(),
           changePercent: (quote.regularMarketChangePercent || 0).toString(),
-          high: (quote.regularMarketDayHigh || quote.regularMarketPrice || 0).toString(),
-          low: (quote.regularMarketDayLow || quote.regularMarketPrice || 0).toString(),
-          volume: quote.regularMarketVolume || 0
+          high: (quote.regularMarketDayHigh || current).toString(),
+          low: (quote.regularMarketDayLow || current).toString(),
+          volume: quote.regularMarketVolume || 0,
+          open: (quote.regularMarketOpen || prev).toString(),
+          timestamp: new Date()
         });
       }
       
@@ -400,7 +462,9 @@ export class MarketDataService {
             changePercent: changePercent.toString(),
             high: (quote.dayHigh || quote.high || current).toString(),
             low: (quote.dayLow || quote.low || current).toString(),
-            volume: quote.totalTradedVolume || quote.volume || 0
+            volume: quote.totalTradedVolume || quote.volume || 0,
+            open: (quote.open || quote.dayOpen || prev).toString(),
+            timestamp: new Date()
           });
         }
       } catch (error) {
@@ -505,7 +569,9 @@ export class MarketDataService {
             changePercent: changePercent.toString(),
             high: (quote.priceperchigh || current).toString(),
             low: (quote.priceperclow || current).toString(),
-            volume: parseInt(quote.volume || '0')
+            volume: parseInt(quote.volume || '0'),
+            open: (quote.priceopen || prev).toString(),
+            timestamp: new Date()
           });
         }
       } catch (error) {
@@ -549,7 +615,9 @@ export class MarketDataService {
             changePercent: changePercent.toString(),
             high: (quote['03. high'] || current).toString(),
             low: (quote['04. low'] || current).toString(),
-            volume: parseInt(quote['06. volume'] || '0')
+            volume: parseInt(quote['06. volume'] || '0'),
+            open: (quote['02. open'] || quote['07. previous close'] || current).toString(),
+            timestamp: new Date()
           });
         }
       } catch (error) {
@@ -598,7 +666,9 @@ export class MarketDataService {
             changePercent: changePercent.toString(),
             high: (data.high || current).toString(),
             low: (data.low || current).toString(),
-            volume: parseInt(data.volume || '0')
+            volume: parseInt(data.volume || '0'),
+            open: (data.open || data.previous_close || current).toString(),
+            timestamp: new Date()
           });
         }
       } catch (error) {
@@ -644,7 +714,9 @@ export class MarketDataService {
             changePercent: changePercent.toString(),
             high: (quote.high || current).toString(),
             low: (quote.low || current).toString(),
-            volume: quote.volume || 0
+            volume: quote.volume || 0,
+            open: (quote.open || prev).toString(),
+            timestamp: new Date(quote.date)
           });
         }
       } catch (error) {
@@ -748,7 +820,7 @@ export class MarketDataService {
                 high: (highs[i] || close).toString(),
                 low: (lows[i] || close).toString(),
                 volume: volumes[i] || 0,
-                timestamp: new Date(timestamps[i] * 1000).toISOString()
+                timestamp: new Date(timestamps[i] * 1000)
               });
             }
           }
@@ -795,7 +867,7 @@ export class MarketDataService {
               high: values['2. high'],
               low: values['3. low'],
               volume: parseInt(values['5. volume'] || '0'),
-              timestamp: new Date(date).toISOString()
+              timestamp: new Date(date)
             });
           }
         }
@@ -847,7 +919,7 @@ export class MarketDataService {
               high: point.high,
               low: point.low,
               volume: parseInt(point.volume || '0'),
-              timestamp: new Date(point.datetime).toISOString()
+              timestamp: new Date(point.datetime)
             });
           }
         }

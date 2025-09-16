@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/Header';
 import { TabNavigation } from '@/components/Layout/TabNavigation';
 import { MarketOverview } from '@/components/Dashboard/MarketOverview';
-import { TechnicalIndicators } from '@/components/Dashboard/TechnicalIndicators';
+import { MultiTimeframeAnalysis } from '@/components/Dashboard/MultiTimeframeAnalysis';
+import { TechnicalIndicatorsTable } from '@/components/Dashboard/TechnicalIndicatorsTable';
+import { MarketDataTable } from '@/components/Dashboard/MarketDataTable';
 import { AIInsights } from '@/components/Dashboard/AIInsights';
 import { SignalsPanel } from '@/components/LiveSignals/SignalsPanel';
 import { OptionChain } from '@/components/Options/OptionChain';
@@ -71,30 +73,14 @@ export default function TradingDashboard() {
           <div className="space-y-6">
             <MarketOverview marketData={marketData} />
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Main Chart Placeholder */}
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                  <CardTitle>Nifty 50 - 5 Min Chart</CardTitle>
-                  <div className="flex items-center space-x-2">
-                    <select className="px-3 py-1 text-sm border border-border rounded-lg bg-background" disabled>
-                      <option>No Data Available</option>
-                    </select>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-80 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg flex items-center justify-center">
-                    <div className="text-center">
-                      <CandlestickChart size={48} className="text-muted-foreground mb-4 mx-auto" />
-                      <p className="text-muted-foreground">Real-time Candlestick Chart</p>
-                      <p className="text-sm text-muted-foreground mt-1">Integrating with Chart.js/TradingView</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <TechnicalIndicators indicators={technicalIndicators} />
-            </div>
+            {/* Multi-timeframe Analysis */}
+            <MultiTimeframeAnalysis />
+            
+            {/* Market Data Table */}
+            <MarketDataTable />
+            
+            {/* Technical Indicators Matrix */}
+            <TechnicalIndicatorsTable />
 
             <AIInsights analysis={aiAnalysis} isConnected={connectionStatus === 'connected'} />
           </div>

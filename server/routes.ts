@@ -48,15 +48,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const symbols = ['NIFTY', 'BANKNIFTY', 'SENSEX'];
       const marketData = await marketDataService.getMarketData(symbols);
       
-      // Save to storage
+      // Save to storage and collect the saved data with full OHLC and timestamps
+      const savedData = [];
       for (const data of marketData) {
-        await storage.saveMarketData(data);
+        const saved = await storage.saveMarketData(data);
+        savedData.push(saved);
       }
       
-      // Broadcast real-time updates
-      broadcast({ type: 'MARKET_DATA', data: marketData });
+      // Broadcast real-time updates with the enriched data
+      broadcast({ type: 'MARKET_DATA', data: savedData });
       
-      res.json(marketData);
+      res.json(savedData);
     } catch (error) {
       console.error('Market data fetch error:', error);
       res.status(200).json({ error: 'No Data Available', message: 'Failed to fetch real market data' });
@@ -99,6 +101,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Technical analysis error:', error);
       res.status(200).json({ error: 'No Data Available', message: 'Technical analysis requires market data' });
+    }
+  });
+
+  // Multi-timeframe Technical Analysis API
+  app.get('/api/multi-timeframe-analysis', async (req, res) => {
+    try {
+      // Disable caching for fresh calculations
+      res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      
+      const marketData = await storage.getMarketData();
+      console.log(`Multi-timeframe analysis: Processing ${marketData.length} data points`);
+      
+      const multiTimeframeAnalysis = technicalAnalysisService.analyzeMultiTimeframe(marketData);
+      
+      res.json(multiTimeframeAnalysis);
+    } catch (error) {
+      console.error('Multi-timeframe analysis error:', error);
+      res.status(200).json({ error: 'No Data Available', message: 'Multi-timeframe analysis requires market data' });
     }
   });
 

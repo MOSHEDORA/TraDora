@@ -42,7 +42,8 @@ export const paperTrades = pgTable("paper_trades", {
 export const marketData = pgTable("market_data", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   symbol: text("symbol").notNull(),
-  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  open: decimal("open", { precision: 10, scale: 2 }),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(), // Close price
   change: decimal("change", { precision: 10, scale: 2 }).notNull(),
   changePercent: decimal("change_percent", { precision: 5, scale: 2 }).notNull(),
   high: decimal("high", { precision: 10, scale: 2 }).notNull(),

@@ -192,7 +192,12 @@ export class MemStorage implements IStorage {
 
   async saveMarketData(insertData: InsertMarketData): Promise<MarketData> {
     const id = randomUUID();
-    const data: MarketData = { ...insertData, id, timestamp: new Date() };
+    const data: MarketData = { 
+      ...insertData,
+      id,
+      timestamp: insertData.timestamp || new Date(),
+      open: insertData.open || null
+    };
     this.marketData.set(id, data);
     return data;
   }
