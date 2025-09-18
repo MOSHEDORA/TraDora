@@ -48,12 +48,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const symbols = ['NIFTY', 'BANKNIFTY', 'SENSEX'];
       const marketData = await marketDataService.getMarketData(symbols);
       
-      // Save to storage and collect the saved data with full OHLC and timestamps
+      // Save to both memory storage and file-based persistent storage
       const savedData = [];
       for (const data of marketData) {
         const saved = await storage.saveMarketData(data);
         savedData.push(saved);
       }
+      
+      // Save to file-based persistent storage for historical analysis and training
+      const fileSavedData = await marketDataService.saveMarketDataToFiles(marketData);
       
       // Broadcast real-time updates with the enriched data
       broadcast({ type: 'MARKET_DATA', data: savedData });
@@ -341,16 +344,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Historical OHLC Data API
+  app.get('/api/historical-ohlc', async (req, res) => {
+    try {
+      const { symbol, days } = req.query;
+      const daysNum = days ? parseInt(days as string) : 30;
+      
+      const historicalData = await marketDataService.getHistoricalOHLCFromFiles(symbol as string, daysNum);
+      
+      res.json(historicalData);
+    } catch (error) {
+      console.error('Historical OHLC fetch error:', error);
+      res.status(500).json({ error: 'Failed to fetch historical OHLC data' });
+    }
+  });
+
+  // Data Summary API
+  app.get('/api/data-summary', async (req, res) => {
+    try {
+      const summary = await marketDataService.getDataSummary();
+      res.json(summary);
+    } catch (error) {
+      console.error('Data summary error:', error);
+      res.status(500).json({ error: 'Failed to get data summary' });
+    }
+  });
+
+  // Initialize daily model training
+  marketDataService.initializeDailyTraining();
+
   // Real-time data updates (runs every 5 seconds)
   setInterval(async () => {
     try {
       const symbols = ['NIFTY', 'BANKNIFTY', 'SENSEX'];
       const marketData = await marketDataService.getMarketData(symbols);
       
-      // Save and broadcast updates
+      // Save to both memory and file storage
       for (const data of marketData) {
         await storage.saveMarketData(data);
       }
+      
+      // Save to file-based persistent storage
+      await marketDataService.saveMarketDataToFiles(marketData);
       
       broadcast({ type: 'MARKET_DATA_UPDATE', data: marketData });
       
